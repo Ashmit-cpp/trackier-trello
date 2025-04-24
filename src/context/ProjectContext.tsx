@@ -18,7 +18,7 @@ interface ProjectContextType {
     description: string,
     coverImage?: string
   ) => void;
-  createList: (projectId: string, listTitle: string) => void;
+  createList: (projectId: string, listTitle: string, imageUrl?: string) => void;
   createTask: (
     projectId: string,
     listId: string,
@@ -77,13 +77,20 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     ]);
   };
 
-  const createList = (projectId: string, listTitle: string) => {
+  const createList = (
+    projectId: string,
+    listTitle: string,
+    imageUrl?: string
+  ) => {
     setProjects((ps) =>
       ps.map((p) =>
         p.id === projectId
           ? {
               ...p,
-              lists: [...p.lists, { id: uuid(), title: listTitle, tasks: [] }],
+              lists: [
+                ...p.lists,
+                { id: uuid(), title: listTitle, imageUrl, tasks: [] },
+              ],
             }
           : p
       )

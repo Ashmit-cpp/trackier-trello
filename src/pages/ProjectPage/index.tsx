@@ -1,6 +1,9 @@
 // src/pages/ProjectPage.tsx
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useProjects } from "@/context/ProjectContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,34 +29,51 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { TaskStatus, TaskPriority, Task } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { TaskStatus, TaskPriority, Task } from "@/lib/types";
+
+const listSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  imageUrl: z.string().optional(),
+});
+type ListForm = z.infer<typeof listSchema>;
+
+const taskSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  status: z.enum(["todo", "in-progress", "done"]),
+  priority: z.enum(["Low", "Medium", "High"]),
+});
+type TaskForm = z.infer<typeof taskSchema>;
 
 export default function ProjectPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const { projects, createList, createTask, moveTask } = useProjects();
   const project = projects.find((p) => p.id === projectId)!;
 
-  // New List dialog state
-  const [listDialogOpen, setListDialogOpen] = useState(false);
-  const [newListTitle, setNewListTitle] = useState("");
+  // RHF for New List
+  const listForm = useForm<ListForm>({
+    resolver: zodResolver(listSchema),
+    defaultValues: { title: "", imageUrl: "" },
+  });
 
-  // New Task dialog state
-  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  // RHF for New Task
+  const taskForm = useForm<TaskForm>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      status: "todo",
+      priority: "Medium",
+    },
+  });
   const [taskForListId, setTaskForListId] = useState<string | null>(null);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskDesc, setNewTaskDesc] = useState("");
-  const [newTaskStatus, setNewTaskStatus] = useState<TaskStatus>("todo");
-  const [newTaskPriority, setNewTaskPriority] =
-    useState<TaskPriority>("Medium");
 
-  // Task detail popup
+  // Task popup
   const [popupTaskId, setPopupTaskId] = useState<string | null>(null);
   let popupTask: Task | null = null;
   let popupListId: string | null = null;
-
-  // find the task and its list
   for (const list of project.lists) {
     const found = list.tasks.find((t) => t.id === popupTaskId);
     if (found) {
@@ -62,7 +82,8 @@ export default function ProjectPage() {
       break;
     }
   }
-  // Drag & drop handler
+
+  // Drag & drop
   function onDragEnd(result: DropResult) {
     const { source, destination } = result;
     if (!destination) return;
@@ -71,7 +92,6 @@ export default function ProjectPage() {
       source.index === destination.index
     )
       return;
-
     moveTask(
       project.id,
       source.droppableId,
@@ -81,52 +101,49 @@ export default function ProjectPage() {
     );
   }
 
-  // Create List
-  function handleCreateList() {
-    if (!newListTitle.trim()) return;
-    createList(project.id, newListTitle.trim());
-    setNewListTitle("");
+  // Handlers wired to RHF
+  const onSubmitList = (data: ListForm) => {
+    createList(project.id, data.title, data.imageUrl || undefined);
+    listForm.reset();
     setListDialogOpen(false);
-  }
+  };
 
-  // Create Task
-  function handleCreateTask() {
-    if (!taskForListId || !newTaskTitle.trim()) return;
+  const onSubmitTask = (data: TaskForm) => {
+    if (!taskForListId) return;
     createTask(
       project.id,
       taskForListId,
-      newTaskTitle.trim(),
-      newTaskDesc.trim(),
-      newTaskStatus,
-      newTaskPriority
+      data.title,
+      data.description || "",
+      data.status,
+      data.priority
     );
-    setNewTaskTitle("");
-    setNewTaskDesc("");
-    setNewTaskStatus("todo");
-    setNewTaskPriority("Medium");
+    taskForm.reset();
     setTaskForListId(null);
     setTaskDialogOpen(false);
-  }
+  };
+
+  // Dialog visibility
+  const [listDialogOpen, setListDialogOpen] = useState(false);
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
 
   return (
     <div className="space-y-6">
-      {/* Header & New List */}
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">{project.title}</h1>
-        <Button onClick={() => setListDialogOpen(true)}>+ New List</Button>
+        <Button onClick={() => setListDialogOpen(true)}>Add New List</Button>
       </div>
 
-      {/* Lists with drag-and-drop */}
+      {/* Drag-and-drop Lists */}
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid grid-cols-2 gap-6">
           {project.lists.map((list) => {
-            // compute progress
             const total = list.tasks.length;
             const doneCount = list.tasks.filter(
               (t) => t.status === "done"
             ).length;
             const progress = total ? Math.round((doneCount / total) * 100) : 0;
-
             return (
               <Droppable droppableId={list.id} key={list.id}>
                 {(provided) => (
@@ -137,6 +154,13 @@ export default function ProjectPage() {
                   >
                     <Card>
                       <CardContent>
+                        {list.imageUrl && (
+                          <img
+                            src={list.imageUrl}
+                            alt={list.title}
+                            className="mb-2 w-full h-24 object-cover rounded"
+                          />
+                        )}
                         <div className="flex justify-between items-center mb-2">
                           <div className="flex-1">
                             <h2 className="text-lg font-semibold">
@@ -145,7 +169,7 @@ export default function ProjectPage() {
                             <Progress value={progress} className="mt-1" />
                           </div>
                         </div>
-                        <div className="space-y-2 w-full flex flex-col justify-center items-center">
+                        <div className="space-y-2 flex flex-col ">
                           {list.tasks.map((task, idx) => (
                             <Draggable
                               key={task.id}
@@ -161,7 +185,7 @@ export default function ProjectPage() {
                                   className="cursor-pointer"
                                 >
                                   <CardContent>
-                                    <div className="flex justify-between gap-3 items-center">
+                                    <div className="flex justify-between">
                                       <h3 className="font-medium">
                                         {task.title}
                                       </h3>
@@ -180,8 +204,8 @@ export default function ProjectPage() {
                               )}
                             </Draggable>
                           ))}
-
                           <Button
+                            size="sm"
                             variant={"outline"}
                             onClick={() => {
                               setTaskForListId(list.id);
@@ -204,23 +228,37 @@ export default function ProjectPage() {
 
       {/* New List Dialog */}
       <Dialog open={listDialogOpen} onOpenChange={setListDialogOpen}>
-        <DialogContent>
-          {" "}
+        <DialogContent className="space-y-4">
           <DialogTitle>Create New List</DialogTitle>
-          <Input
-            placeholder="List title"
-            value={newListTitle}
-            onChange={(e) => setNewListTitle(e.target.value)}
-          />
-          <DialogFooter>
-            <Button onClick={handleCreateList} disabled={!newListTitle.trim()}>
-              Create
-            </Button>
-          </DialogFooter>{" "}
+
+          <form onSubmit={listForm.handleSubmit(onSubmitList)}>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="list-title">Title</Label>
+                <Input id="list-title" {...listForm.register("title")} />
+                {listForm.formState.errors.title && (
+                  <p className="text-red-500 text-sm">
+                    {listForm.formState.errors.title.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="list-image">Image URL (optional)</Label>
+                <Input id="list-image" {...listForm.register("imageUrl")} />
+                {listForm.formState.errors.imageUrl && (
+                  <p className="text-red-500 text-sm">
+                    {listForm.formState.errors.imageUrl.message}
+                  </p>
+                )}
+              </div>
+            </div>
+            <DialogFooter className="mt-4">
+              <Button type="submit">Create</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
-      {/* New Task Dialog */}
       <Dialog
         open={taskDialogOpen}
         onOpenChange={() => setTaskDialogOpen(false)}
@@ -228,83 +266,66 @@ export default function ProjectPage() {
         <DialogContent className="space-y-4">
           <DialogTitle>Create New Task</DialogTitle>
 
-          <div className="space-y-1">
-            <Label htmlFor="new-task-title" className="block">
-              Title
-            </Label>
-            <Input
-              id="new-task-title"
-              placeholder="Task title"
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-1">
-            <Label htmlFor="new-task-desc" className="block">
-              Description
-            </Label>
-            <Input
-              id="new-task-desc"
-              placeholder="Task description"
-              value={newTaskDesc}
-              onChange={(e) => setNewTaskDesc(e.target.value)}
-            />
-          </div>
-
-          <div className="flex space-x-4 justify-between">
-            <div className="space-y-1">
-              <Label htmlFor="new-task-status" className="block">
-                Status
-              </Label>
-              <Select
-                value={newTaskStatus}
-                onValueChange={(v: TaskStatus) => setNewTaskStatus(v)}
-              >
-                <SelectTrigger id="new-task-status">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todo">To Do</SelectItem>
-                  <SelectItem value="in-progress">In Progress</SelectItem>
-                  <SelectItem value="done">Done</SelectItem>
-                </SelectContent>
-              </Select>
+          <form onSubmit={taskForm.handleSubmit(onSubmitTask)}>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="task-title">Title</Label>
+                <Input id="task-title" {...taskForm.register("title")} />
+                {taskForm.formState.errors.title && (
+                  <p className="text-red-500 text-sm">
+                    {taskForm.formState.errors.title.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="task-desc">Description</Label>
+                <Input id="task-desc" {...taskForm.register("description")} />
+              </div>
+              <div className="flex justify-between items-center space-x-4">
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="task-status">Status</Label>
+                  <Select
+                    // id="task-status"
+                    {...taskForm.register("status")}
+                    onValueChange={(v: TaskStatus) =>
+                      taskForm.setValue("status", v, { shouldValidate: true })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todo">To Do</SelectItem>
+                      <SelectItem value="in-progress">In Progress</SelectItem>
+                      <SelectItem value="done">Done</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="task-priority">Priority</Label>
+                  <Select
+                    // id="task-priority"
+                    {...taskForm.register("priority")}
+                    onValueChange={(v: TaskPriority) =>
+                      taskForm.setValue("priority", v, { shouldValidate: true })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
-
-            <div className="space-y-1">
-              <Label htmlFor="new-task-priority" className="block">
-                Priority
-              </Label>
-              <Select
-                value={newTaskPriority}
-                onValueChange={(v: TaskPriority) => setNewTaskPriority(v)}
-              >
-                <SelectTrigger id="new-task-priority">
-                  <SelectValue placeholder="Priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              onClick={handleCreateTask}
-              disabled={
-                !newTaskTitle.trim() ||
-                !taskForListId ||
-                !newTaskStatus ||
-                !newTaskPriority
-              }
-            >
-              Create
-            </Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="submit">Create</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 

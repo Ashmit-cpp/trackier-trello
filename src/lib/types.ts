@@ -15,6 +15,7 @@ export interface Task {
 export interface List {
   id: string;
   title: string;
+  imageUrl?: string;      
   tasks: Task[];
 }
 

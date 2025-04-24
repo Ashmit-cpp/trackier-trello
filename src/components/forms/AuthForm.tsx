@@ -15,16 +15,27 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z
+    .string({ required_error: "Email is required" })
+    .email("Please enter a valid email address"),
+  password: z
+    .string({ required_error: "Password is required" })
+    .min(6, "Password must be at least 6 characters long"),
 });
 
 const registerSchema = z.object({
-  username: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(6),
+  username: z
+    .string({ required_error: "Username is required" })
+    .min(2, "Username must be at least 2 characters long"),
+  email: z
+    .string({ required_error: "Email is required" })
+    .email("Please enter a valid email address"),
+  password: z
+    .string({ required_error: "Password is required" })
+    .min(6, "Password must be at least 6 characters long"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -43,13 +54,23 @@ export function AuthForm({ mode }: AuthFormProps) {
       resolver: zodResolver(registerSchema),
       defaultValues: { username: "", email: "", password: "" },
     });
-    const onRegister = (data: RegisterForm) => {
-      authRegister(data);
-      navigate("/");
+    const onRegister = async (data: RegisterForm) => {
+      try {
+        await authRegister({
+          username: data.username,
+          email: data.email,
+          password: data.password,
+        });
+        navigate("/");
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Something went wrong";
+        toast("Registration failed! " + message);
+      }
     };
 
     return (
-      <Card className="max-w-md mx-auto mt-20 p-6 shadow-lg rounded-2xl">
+      <Card className="mx-auto mt-20 p-6 shadow-lg rounded-2xl">
         <CardContent>
           <h2 className="text-2xl font-semibold mb-6 text-center capitalize">
             Register
@@ -66,7 +87,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="shadcn" {...field} />
+                      <Input placeholder="username" {...field} />
                     </FormControl>
                     <FormDescription>
                       This is your public display name.
@@ -114,18 +135,25 @@ export function AuthForm({ mode }: AuthFormProps) {
     );
   }
 
-  // login mode
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
-  const onLogin = (data: LoginForm) => {
-    login(data.email, data.password);
-    navigate("/");
+  const onLogin = async (data: LoginForm) => {
+    try {
+      await login(data.email, data.password);
+      navigate("/"); // now the *only* navigate call
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      console.log(message);
+
+      toast("Login failed! " + message);
+    }
   };
 
   return (
-    <Card className="max-w-md mx-auto mt-20 p-6 shadow-lg rounded-2xl">
+    <Card className=" mx-auto mt-20 p-6 shadow-lg rounded-2xl">
       <CardContent>
         <h2 className="text-2xl font-semibold mb-6 text-center capitalize">
           Login

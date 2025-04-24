@@ -1,7 +1,13 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { dbGet, dbSet, dbDelete } from '@/lib/db';
-import { User } from '@/lib/types';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { useNavigate } from "react-router-dom";
+import { dbGet, dbSet, dbDelete } from "@/lib/db";
+import { User } from "@/lib/types";
 
 interface AuthContextType {
   user: User | null;
@@ -21,33 +27,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Load current user from IndexedDB on mount
   useEffect(() => {
     (async () => {
-      const stored = await dbGet('users', 'current');
+      const stored = await dbGet("users", "current");
       if (stored) setUser(stored as User);
       setLoading(false);
     })();
   }, []);
 
-  const register = async (data: User) => {
-    const exists = await dbGet('users', data.email);
-    if (exists) throw new Error('User already exists');
-    await dbSet('users', data.email, data);
-    await dbSet('users', 'current', data);
+  const register = async (data: User): Promise<void> => {
+    const exists = await dbGet("users", data.email);
+    if (exists) {
+      throw new Error("User already exists");
+    }
+
+    await dbSet("users", data.email, data);
+    await dbSet("users", "current", data);
     setUser(data);
-    navigate('/');
   };
 
-  const login = async (email: string, password: string) => {
-    const u = (await dbGet('users', email)) as User | undefined;
-    if (!u || u.password !== password) throw new Error('Invalid credentials');
-    await dbSet('users', 'current', u);
+  const login = async (email: string, password: string): Promise<void> => {
+    const u = (await dbGet("users", email)) as User | undefined;
+
+    if (!u) {
+      throw new Error("User does not exist");
+    }
+
+    if (u.password !== password) {
+      throw new Error("Incorrect password");
+    }
+
+    // success! store current and update state
+    await dbSet("users", "current", u);
     setUser(u);
-    navigate('/');
   };
 
   const logout = () => {
-    dbDelete('users', 'current');
+    dbDelete("users", "current");
     setUser(null);
-    navigate('/login');
+    navigate("/login");
   };
 
   if (loading) {
@@ -63,6 +79,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }

@@ -1,5 +1,10 @@
+// src/components/AppSidebar.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import {
   Sidebar,
   SidebarContent,
@@ -11,7 +16,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
   SidebarGroupAction,
 } from "@/components/ui/sidebar";
 import {
@@ -20,66 +24,77 @@ import {
   DialogContent,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Plus, User2, ChevronUp } from "lucide-react";
 import { useProjects } from "@/context/ProjectContext";
-import { Plus } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { ModeToggle } from "@/components/mode-toggle";
+
+const projectSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  coverImage: z.string().optional(),
+});
+
+type ProjectForm = z.infer<typeof projectSchema>;
 
 export function AppSidebar() {
   const navigate = useNavigate();
-  const { projects, createProject, createTask } = useProjects();
+  const { user, logout } = useAuth();
+  const displayName = user?.username || user?.email || "User";
+  const { projects, createProject } = useProjects();
+
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null
   );
   const [projDialogOpen, setProjDialogOpen] = useState(false);
-  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
 
-  const [newProjTitle, setNewProjTitle] = useState("");
-  const [newProjDesc, setNewProjDesc] = useState("");
-  const [newProjCover, setNewProjCover] = useState("");
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskDesc, setNewTaskDesc] = useState("");
+  // React Hook Form setup
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ProjectForm>({
+    resolver: zodResolver(projectSchema),
+    defaultValues: { title: "", description: "", coverImage: "" },
+    mode: "onChange",
+  });
+
+  const onSubmit = (data: ProjectForm) => {
+    createProject(data.title, data.description, data.coverImage);
+    reset();
+    setProjDialogOpen(false);
+  };
 
   const handleProjectSelect = (id: string) => {
     setSelectedProjectId(id);
     navigate(`/project/${id}`);
   };
 
-  const handleCreateProject = () => {
-    createProject(newProjTitle, newProjDesc, newProjCover);
-    setNewProjTitle("");
-    setNewProjDesc("");
-    setNewProjCover("");
-    setProjDialogOpen(false);
-  };
-
-  const handleCreateTask = () => {
-    if (selectedProjectId) {
-      createTask(selectedProjectId, newTaskTitle, newTaskDesc);
-      setNewTaskTitle("");
-      setNewTaskDesc("");
-      setTaskDialogOpen(false);
-    }
-  };
-
   return (
     <>
       <Sidebar>
-        <SidebarHeader></SidebarHeader>
+        <SidebarHeader />
 
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel
-              className="cursor-pointer"
-              onClick={() => navigate(`/project`)}
-            >
+            <SidebarGroupLabel onClick={() => navigate(`/project`)}>
               Projects
             </SidebarGroupLabel>
             <SidebarGroupAction title="Add Project">
               <Plus
-                className="cursor-pointer"
                 onClick={() => setProjDialogOpen(true)}
-              />{" "}
+                className="cursor-pointer"
+              />
               <span className="sr-only">Add Project</span>
             </SidebarGroupAction>
             <SidebarGroupContent>
@@ -87,7 +102,6 @@ export function AppSidebar() {
                 {projects.map((proj) => (
                   <SidebarMenuItem key={proj.id}>
                     <SidebarMenuButton
-                      className="cursor-pointer"
                       onClick={() => handleProjectSelect(proj.id)}
                     >
                       {proj.title}
@@ -99,8 +113,29 @@ export function AppSidebar() {
           </SidebarGroup>
         </SidebarContent>
 
-        <SidebarFooter>
-          <SidebarTrigger />
+        <SidebarFooter className="flex items-center justify-between p-4">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton>
+                    <User2 className="mr-2" />
+                    {displayName}
+                    <ChevronUp className="ml-auto" />
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="top">
+                  <DropdownMenuItem>
+                    <span>Billing</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout}>
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarMenuItem>
+          </SidebarMenu>
+          <ModeToggle />
         </SidebarFooter>
       </Sidebar>
 
@@ -108,49 +143,52 @@ export function AppSidebar() {
       <Dialog open={projDialogOpen} onOpenChange={setProjDialogOpen}>
         <DialogContent>
           <DialogTitle>Create New Project</DialogTitle>
-          <Input
-            placeholder="Title"
-            value={newProjTitle}
-            onChange={(e) => setNewProjTitle(e.target.value)}
-          />
-          <Input
-            placeholder="Description"
-            value={newProjDesc}
-            onChange={(e) => setNewProjDesc(e.target.value)}
-            className="mt-2"
-          />
-          <Input
-            placeholder="Cover Image URL"
-            value={newProjCover}
-            onChange={(e) => setNewProjCover(e.target.value)}
-            className="mt-2"
-          />
-          <DialogFooter>
-            <Button onClick={handleCreateProject}>Create</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* Create Task Dialog */}
-      <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
-        <DialogContent>
-          <DialogTitle>Create New Task</DialogTitle>
-          <Input
-            placeholder="Title"
-            value={newTaskTitle}
-            onChange={(e) => setNewTaskTitle(e.target.value)}
-          />
-          <Input
-            placeholder="Description"
-            value={newTaskDesc}
-            onChange={(e) => setNewTaskDesc(e.target.value)}
-            className="mt-2"
-          />
-          <DialogFooter>
-            <Button onClick={handleCreateTask} disabled={!selectedProjectId}>
-              Create
-            </Button>
-          </DialogFooter>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-1">
+              <Label htmlFor="proj-title">Title</Label>
+              <Input
+                id="proj-title"
+                {...register("title")}
+                placeholder="Project title"
+              />
+              {errors.title && (
+                <p className="text-sm text-red-500">{errors.title.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="proj-desc">Description</Label>
+              <Input
+                id="proj-desc"
+                {...register("description")}
+                placeholder="Project description"
+              />
+              {errors.description && (
+                <p className="text-sm text-red-500">
+                  {errors.description.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="proj-cover">Cover Image URL (optional)</Label>
+              <Input
+                id="proj-cover"
+                {...register("coverImage")}
+                placeholder="https://example.com/cover.jpg"
+              />
+              {errors.coverImage && (
+                <p className="text-sm text-red-500">
+                  {errors.coverImage.message}
+                </p>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button type="submit">Create</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </>
