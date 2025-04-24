@@ -12,6 +12,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarTrigger,
+  SidebarGroupAction,
 } from "@/components/ui/sidebar";
 import {
   Dialog,
@@ -22,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useProjects } from "@/context/ProjectContext";
+import { Plus } from "lucide-react";
 
 export function AppSidebar() {
   const navigate = useNavigate();
@@ -63,32 +65,29 @@ export function AppSidebar() {
   return (
     <>
       <Sidebar>
-        <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => setProjDialogOpen(true)}>
-                + New Project
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => setTaskDialogOpen(true)}
-                disabled={!selectedProjectId}
-              >
-                + New Task
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader>
+        <SidebarHeader></SidebarHeader>
 
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Projects</SidebarGroupLabel>
+            <SidebarGroupLabel
+              className="cursor-pointer"
+              onClick={() => navigate(`/project`)}
+            >
+              Projects
+            </SidebarGroupLabel>
+            <SidebarGroupAction title="Add Project">
+              <Plus
+                className="cursor-pointer"
+                onClick={() => setProjDialogOpen(true)}
+              />{" "}
+              <span className="sr-only">Add Project</span>
+            </SidebarGroupAction>
             <SidebarGroupContent>
               <SidebarMenu>
                 {projects.map((proj) => (
                   <SidebarMenuItem key={proj.id}>
                     <SidebarMenuButton
+                      className="cursor-pointer"
                       onClick={() => handleProjectSelect(proj.id)}
                     >
                       {proj.title}

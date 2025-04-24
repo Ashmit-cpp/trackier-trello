@@ -1,8 +1,13 @@
 // src/types.ts
+export type TaskStatus = "todo" | "in-progress" | "done";
+export type TaskPriority = "Low" | "Medium" | "High";
+
 export interface Task {
   id: string;
   title: string;
   description: string;
+  status: TaskStatus;
+  priority: TaskPriority;
   assignedUser?: string;
   dueDate?: string;
 }

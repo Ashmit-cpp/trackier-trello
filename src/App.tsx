@@ -8,7 +8,7 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardHome from './pages/DashboardPage';
 import { DashboardLayout } from './pages/DashboardPage/layout/DashboardLayout';
-import ProjectPage from './pages/ProjectPage/projects';
+import ProjectPage from './pages/ProjectPage';
 
 
 export function App() {
