@@ -67,7 +67,7 @@ export default function ProjectPage() {
                     {...provided.droppableProps}
                     className="space-y-4"
                   >
-                    <Card>
+                    <Card data-testid="task-card">
                       <CardContent>
                         {list.imageUrl && (
                           <img
