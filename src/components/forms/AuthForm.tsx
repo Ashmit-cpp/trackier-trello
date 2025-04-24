@@ -1,5 +1,4 @@
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import {
@@ -16,30 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-
-const loginSchema = z.object({
-  email: z
-    .string({ required_error: "Email is required" })
-    .email("Please enter a valid email address"),
-  password: z
-    .string({ required_error: "Password is required" })
-    .min(6, "Password must be at least 6 characters long"),
-});
-
-const registerSchema = z.object({
-  username: z
-    .string({ required_error: "Username is required" })
-    .min(2, "Username must be at least 2 characters long"),
-  email: z
-    .string({ required_error: "Email is required" })
-    .email("Please enter a valid email address"),
-  password: z
-    .string({ required_error: "Password is required" })
-    .min(6, "Password must be at least 6 characters long"),
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
-type RegisterForm = z.infer<typeof registerSchema>;
+import { RegisterForm, registerSchema, LoginForm, loginSchema } from "./schema";
 
 interface AuthFormProps {
   mode: "login" | "register";
@@ -87,7 +63,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="username" {...field} />
+                      <Input id="username" placeholder="username" {...field} />
                     </FormControl>
                     <FormDescription>
                       This is your public display name.
@@ -104,7 +80,12 @@ export function AuthForm({ mode }: AuthFormProps) {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="name@example.com" {...field} />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="name@example.com"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -118,7 +99,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <Input id="password" type="password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -142,12 +123,11 @@ export function AuthForm({ mode }: AuthFormProps) {
   const onLogin = async (data: LoginForm) => {
     try {
       await login(data.email, data.password);
-      navigate("/"); // now the *only* navigate call
+      navigate("/");
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Something went wrong";
       console.log(message);
-
       toast("Login failed! " + message);
     }
   };
@@ -167,7 +147,11 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} />
+                    <Input
+                      id="email"
+                      placeholder="name@example.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -181,7 +165,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <Input id="email" type="password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
