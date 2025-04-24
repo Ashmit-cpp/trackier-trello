@@ -6,7 +6,11 @@ interface MyDB extends DBSchema {
   projects: { key: string; value: Project[] };
 }
 
+// Union of your object‐store names
+type StoreName = keyof MyDB;
+
 let dbPromise: Promise<IDBPDatabase<MyDB>>;
+
 export function getDB() {
   if (!dbPromise) {
     dbPromise = openDB<MyDB>("app-db", 1, {
@@ -18,22 +22,29 @@ export function getDB() {
   }
   return dbPromise;
 }
-export async function dbGet<T extends keyof MyDB>(store: T, key: IDBValidKey) {
-  const db = await getDB();
-  return db.get(store, key);
-}
-export async function dbSet<T extends keyof MyDB>(
-  store: T,
-  key: IDBValidKey,
-  value: MyDB[T]["value"]
-) {
-  const db = await getDB();
-  await db.put(store, value, key);
-}
-export async function dbDelete<T extends keyof MyDB>(
-  store: T,
+
+export async function dbGet<K extends StoreName>(
+  store: K,
   key: IDBValidKey
-) {
+): Promise<MyDB[K]["value"] | undefined> {
   const db = await getDB();
-  await db.delete(store, key);
+  // cast to any to bypass the literal‐only restriction
+  return (db as any).get(store, key) as MyDB[K]["value"] | undefined;
+}
+
+export async function dbSet<K extends StoreName>(
+  store: K,
+  key: IDBValidKey,
+  value: MyDB[K]["value"]
+): Promise<void> {
+  const db = await getDB();
+  await (db as any).put(store, value, key);
+}
+
+export async function dbDelete<K extends StoreName>(
+  store: K,
+  key: IDBValidKey
+): Promise<void> {
+  const db = await getDB();
+  await (db as any).delete(store, key);
 }
