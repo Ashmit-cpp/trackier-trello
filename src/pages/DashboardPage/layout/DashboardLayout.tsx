@@ -1,14 +1,15 @@
 import { Outlet } from "react-router-dom";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/ui/sidebar/app-sidebar";
+import AppHeader from "@/components/ui/header";
 
 export function DashboardLayout() {
   return (
     <SidebarProvider>
-      <div className="flex h-screen">
+      <div className="flex grow h-screen">
         <AppSidebar />
-        <main className="flex-1 p-6 overflow-auto">
-          <SidebarTrigger />
+        <main className="grow">
+          <AppHeader />
           <Outlet />
         </main>
       </div>

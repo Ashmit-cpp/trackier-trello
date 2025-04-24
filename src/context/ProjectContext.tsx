@@ -9,6 +9,8 @@ import React, {
 import { Project, Task, List, TaskStatus, TaskPriority } from "@/lib/types";
 import { dbGet, dbSet } from "@/lib/db";
 import { v4 as uuid } from "uuid";
+import { useAuth } from "./AuthContext";
+import { mockProjects } from "@/lib/const";
 
 interface ProjectContextType {
   projects: Project[];
@@ -47,10 +49,11 @@ interface ProjectContextType {
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth(); // ← grab current user
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load from IndexedDB
+  // 1) Load from IndexedDB on mount
   useEffect(() => {
     (async () => {
       const saved = await dbGet("projects", "all");
@@ -59,12 +62,19 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  // Persist to IndexedDB
+  // 2) Persist changes
   useEffect(() => {
     if (!loading) {
       dbSet("projects", "all", projects);
     }
   }, [projects, loading]);
+
+  // 3) Seed mock data on first login
+  useEffect(() => {
+    if (!loading && user && projects.length === 0) {
+      setProjects(mockProjects);
+    }
+  }, [user, loading, projects.length]);
 
   const createProject = (
     title: string,

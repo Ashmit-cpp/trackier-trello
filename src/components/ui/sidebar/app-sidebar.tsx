@@ -1,6 +1,6 @@
 // src/components/AppSidebar.tsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,7 +12,6 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -27,8 +26,6 @@ import {
 import {
   DropdownMenu,
   DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -36,7 +33,6 @@ import { Label } from "@/components/ui/label";
 import { Plus, User2, ChevronUp } from "lucide-react";
 import { useProjects } from "@/context/ProjectContext";
 import { useAuth } from "@/context/AuthContext";
-import { ModeToggle } from "@/components/mode-toggle";
 
 const projectSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -48,13 +44,10 @@ type ProjectForm = z.infer<typeof projectSchema>;
 
 export function AppSidebar() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const location = useLocation();
+  const { user } = useAuth();
   const displayName = user?.username || user?.email || "User";
   const { projects, createProject } = useProjects();
-
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
-    null
-  );
   const [projDialogOpen, setProjDialogOpen] = useState(false);
 
   // React Hook Form setup
@@ -65,7 +58,11 @@ export function AppSidebar() {
     formState: { errors },
   } = useForm<ProjectForm>({
     resolver: zodResolver(projectSchema),
-    defaultValues: { title: "", description: "", coverImage: "" },
+    defaultValues: {
+      title: "",
+      description: "",
+      coverImage: "https://placehold.co/600x400",
+    },
     mode: "onChange",
   });
 
@@ -75,23 +72,28 @@ export function AppSidebar() {
     setProjDialogOpen(false);
   };
 
-  const handleProjectSelect = (id: string) => {
-    setSelectedProjectId(id);
+  const handleSelect = (id: string) => {
     navigate(`/project/${id}`);
   };
+  const isProjectsRoot =
+    location.pathname === "/" || location.pathname === "/project/";
 
   return (
     <>
       <Sidebar>
-        <SidebarHeader />
-
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel onClick={() => navigate(`/project`)}>
+            <SidebarGroupLabel
+              onClick={() => navigate(`/`)}
+              className={`cursor-pointer font-bold text-xl ${
+                isProjectsRoot ? "bg-muted text-primary" : ""
+              }`}
+            >
               Projects
             </SidebarGroupLabel>
             <SidebarGroupAction title="Add Project">
               <Plus
+                size={32}
                 onClick={() => setProjDialogOpen(true)}
                 className="cursor-pointer"
               />
@@ -99,15 +101,22 @@ export function AppSidebar() {
             </SidebarGroupAction>
             <SidebarGroupContent>
               <SidebarMenu>
-                {projects.map((proj) => (
-                  <SidebarMenuItem key={proj.id}>
-                    <SidebarMenuButton
-                      onClick={() => handleProjectSelect(proj.id)}
+                {projects.map((proj) => {
+                  const active = location.pathname === `/project/${proj.id}`;
+                  return (
+                    <SidebarMenuItem
+                      key={proj.id}
+                      className="font-medium cursor-pointer"
                     >
-                      {proj.title}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                      <SidebarMenuButton
+                        onClick={() => handleSelect(proj.id)}
+                        className={active ? "bg-muted text-primary" : ""}
+                      >
+                        {proj.title}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -124,18 +133,9 @@ export function AppSidebar() {
                     <ChevronUp className="ml-auto" />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent side="top">
-                  <DropdownMenuItem>
-                    <span>Billing</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logout}>
-                    <span>Sign out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
               </DropdownMenu>
             </SidebarMenuItem>
           </SidebarMenu>
-          <ModeToggle />
         </SidebarFooter>
       </Sidebar>
 
