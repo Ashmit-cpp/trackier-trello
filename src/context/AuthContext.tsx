@@ -1,81 +1,68 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from "react";
-import { toast } from "sonner";
-
-interface User {
-  username?: string;
-  email: string;
-  password: string;
-}
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { dbGet, dbSet, dbDelete } from '@/lib/db';
+import { User } from '@/lib/types';
 
 interface AuthContextType {
   user: User | null;
-  register: (data: User) => void;
-  login: (email: string, password: string) => void;
+  loading: boolean;
+  register: (data: User) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
+  // Load current user from IndexedDB on mount
   useEffect(() => {
-    const stored = localStorage.getItem("currentUser");
-    if (stored) {
-      setUser(JSON.parse(stored));
-    }
+    (async () => {
+      const stored = await dbGet('users', 'current');
+      if (stored) setUser(stored as User);
+      setLoading(false);
+    })();
   }, []);
 
-  const register = (data: User) => {
-    const exists = localStorage.getItem(data.email);
-    if (exists) {
-      toast("User already exists");
-      return;
-    }
-    localStorage.setItem(data.email, JSON.stringify(data));
-    toast("Registration successful");
-    // auto-login after register
-    localStorage.setItem("currentUser", JSON.stringify(data));
+  const register = async (data: User) => {
+    const exists = await dbGet('users', data.email);
+    if (exists) throw new Error('User already exists');
+    await dbSet('users', data.email, data);
+    await dbSet('users', 'current', data);
     setUser(data);
+    navigate('/');
   };
 
-  const login = (email: string, password: string) => {
-    const stored = localStorage.getItem(email);
-    if (!stored) {
-      toast("No such user");
-      return;
-    }
-    const u: User = JSON.parse(stored);
-    if (u.password === password) {
-      toast("Login successful");
-      localStorage.setItem("currentUser", JSON.stringify(u));
-      setUser(u);
-    } else {
-      toast("Incorrect password");
-    }
+  const login = async (email: string, password: string) => {
+    const u = (await dbGet('users', email)) as User | undefined;
+    if (!u || u.password !== password) throw new Error('Invalid credentials');
+    await dbSet('users', 'current', u);
+    setUser(u);
+    navigate('/');
   };
 
   const logout = () => {
-    localStorage.removeItem("currentUser");
+    dbDelete('users', 'current');
     setUser(null);
-    toast("Logged out");
+    navigate('/login');
   };
 
+  if (loading) {
+    return <div>Loading session…</div>;
+  }
+
   return (
-    <AuthContext.Provider value={{ user, register, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, register, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
+export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
-};
+}
