@@ -19,12 +19,13 @@ const taskSchema = z.object({
   status: z.enum(["todo", "in-progress", "done"]),
   priority: z.enum(["Low", "Medium", "High"]),
   assignedUser: z.string().optional(),
+  dueDate: z.string().optional(),
 });
 type TaskForm = z.infer<typeof taskSchema>;
 
 export const useProjectPageLogic = () => {
   const { projectId } = useParams<{ projectId: string }>();
-  const { projects, createList, createTask, moveTask } = useProjects();
+  const { projects, createList, createTask, moveTask, deleteList } = useProjects();
   const project = projects.find((p) => p.id === projectId)!;
 
   const listForm = useForm<ListForm>({
@@ -41,6 +42,7 @@ export const useProjectPageLogic = () => {
       status: "todo",
       priority: "Medium",
       assignedUser: "",
+      dueDate: "",
     },
     mode: "onChange",
   });
@@ -73,7 +75,8 @@ export const useProjectPageLogic = () => {
       data.description || "",
       data.status,
       data.priority,
-      data.assignedUser || undefined
+      data.assignedUser || undefined,
+      data.dueDate || undefined
     );
     taskForm.reset();
     setTaskDialogOpen(false);
@@ -113,5 +116,6 @@ export const useProjectPageLogic = () => {
     onSubmitList,
     onSubmitTask,
     onDragEnd,
+    deleteList
   };
 };

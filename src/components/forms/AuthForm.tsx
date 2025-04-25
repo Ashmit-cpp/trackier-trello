@@ -165,7 +165,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input id="email" type="password" {...field} />
+                    <Input id="password" type="password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

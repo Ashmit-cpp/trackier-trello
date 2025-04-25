@@ -93,6 +93,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupAction title="Add Project">
               <Plus
+                data-cy="add-project"
                 size={32}
                 onClick={() => setProjDialogOpen(true)}
                 className="cursor-pointer"
@@ -109,6 +110,7 @@ export function AppSidebar() {
                       className="font-medium cursor-pointer"
                     >
                       <SidebarMenuButton
+                        data-cy="sidebar-project"
                         onClick={() => handleSelect(proj.id)}
                         className={active ? "bg-muted text-primary" : ""}
                       >

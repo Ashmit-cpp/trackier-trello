@@ -13,6 +13,7 @@ const AppHeader = () => {
       <div className="flex items-center space-x-2">
         <ModeToggle />
         <Button
+          data-cy="logout"
           size={"icon"}
           variant={"outline"}
           className="ml-auto"

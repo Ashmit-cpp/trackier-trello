@@ -20,6 +20,7 @@ interface ProjectContextType {
     coverImage?: string
   ) => void;
   createList: (projectId: string, listTitle: string, imageUrl?: string) => void;
+  deleteList: (projectId: string, listId: string) => void;
   createTask: (
     projectId: string,
     listId: string,
@@ -43,16 +44,17 @@ interface ProjectContextType {
     taskId: string,
     updates: Partial<Omit<Task, "id">>
   ) => void;
+  deleteTask: (projectId: string, listId: string, taskId: string) => void;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth(); // ← grab current user
+  const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 1) Load from IndexedDB on mount
+  // Load from IndexedDB on mount
   useEffect(() => {
     (async () => {
       const saved = await dbGet("projects", "all");
@@ -61,14 +63,14 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  // 2) Persist changes
+  // Persist changes
   useEffect(() => {
     if (!loading) {
       dbSet("projects", "all", projects);
     }
   }, [projects, loading]);
 
-  // 3) Seed mock data on first login
+  // Seed mock data on first login
   useEffect(() => {
     if (!loading && user && projects.length === 0) {
       setProjects(mockProjects);
@@ -101,6 +103,16 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
                 { id: uuid(), title: listTitle, imageUrl, tasks: [] },
               ],
             }
+          : p
+      )
+    );
+  };
+
+  const deleteList = (projectId: string, listId: string) => {
+    setProjects((ps) =>
+      ps.map((p) =>
+        p.id === projectId
+          ? { ...p, lists: p.lists.filter((l) => l.id !== listId) }
           : p
       )
     );
@@ -196,6 +208,23 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const deleteTask = (projectId: string, listId: string, taskId: string) => {
+    setProjects((ps) =>
+      ps.map((p) =>
+        p.id === projectId
+          ? {
+              ...p,
+              lists: p.lists.map((l) =>
+                l.id === listId
+                  ? { ...l, tasks: l.tasks.filter((t) => t.id !== taskId) }
+                  : l
+              ),
+            }
+          : p
+      )
+    );
+  };
+
   if (loading) {
     return <div>Loading projects…</div>;
   }
@@ -207,9 +236,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         loading,
         createProject,
         createList,
+        deleteList,
         createTask,
         moveTask,
         updateTask,
+        deleteTask,
       }}
     >
       {children}
