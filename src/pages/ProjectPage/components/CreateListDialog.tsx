@@ -31,7 +31,7 @@ export function CreateListDialog({
 }: CreateListDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="space-y-4">
+      <DialogContent className="w-full max-w-sm sm:max-w-md mx-auto p-4 space-y-4 max-h-[90vh] overflow-auto">
         <DialogTitle>Create New List</DialogTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -46,6 +46,7 @@ export function CreateListDialog({
                       id="list-title"
                       placeholder="List title"
                       {...field}
+                      className="w-full"
                     />
                   </FormControl>
                   <FormMessage />
@@ -59,7 +60,11 @@ export function CreateListDialog({
                 <FormItem>
                   <FormLabel>Image URL (optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://..." {...field} />
+                    <Input
+                      placeholder="https://..."
+                      {...field}
+                      className="w-full"
+                    />
                   </FormControl>
                   <FormDescription>
                     A URL to show an image atop the list.
@@ -68,8 +73,12 @@ export function CreateListDialog({
                 </FormItem>
               )}
             />
-            <DialogFooter>
-              <Button type="submit" disabled={!form.formState.isValid}>
+            <DialogFooter className="pt-2">
+              <Button
+                type="submit"
+                disabled={!form.formState.isValid}
+                className="w-full sm:w-auto"
+              >
                 Create List
               </Button>
             </DialogFooter>

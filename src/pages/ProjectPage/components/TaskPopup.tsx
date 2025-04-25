@@ -63,7 +63,6 @@ export function TaskPopup({
     },
   });
 
-  // reset form when task changes
   useEffect(() => {
     form.reset({
       title: task.title,
@@ -82,11 +81,12 @@ export function TaskPopup({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="w-full max-w-sm sm:max-w-lg mx-auto p-4 space-y-4 max-h-[90vh] overflow-auto">
         <DialogTitle>Edit Task</DialogTitle>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Title */}
             <FormField
               control={form.control}
               name="title"
@@ -94,13 +94,18 @@ export function TaskPopup({
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="Task title" {...field} />
+                    <Input
+                      placeholder="Task title"
+                      {...field}
+                      className="w-full"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
+            {/* Description */}
             <FormField
               control={form.control}
               name="description"
@@ -108,26 +113,32 @@ export function TaskPopup({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="Optional details" {...field} />
+                    <Input
+                      placeholder="Optional details"
+                      {...field}
+                      className="w-full"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="flex space-x-4">
+            {/* Status, Priority, Due Date */}
+            <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+              {/* Status */}
               <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex-1">
                     <FormLabel>Status</FormLabel>
                     <FormControl>
                       <Select
                         value={field.value}
-                        onValueChange={(v: TaskStatus) => field.onChange(v)}
+                        onValueChange={(v) => field.onChange(v as TaskStatus)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -144,18 +155,19 @@ export function TaskPopup({
                 )}
               />
 
+              {/* Priority */}
               <FormField
                 control={form.control}
                 name="priority"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex-1">
                     <FormLabel>Priority</FormLabel>
                     <FormControl>
                       <Select
                         value={field.value}
-                        onValueChange={(v: TaskPriority) => field.onChange(v)}
+                        onValueChange={(v) => field.onChange(v as TaskPriority)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select priority" />
                         </SelectTrigger>
                         <SelectContent>
@@ -170,11 +182,12 @@ export function TaskPopup({
                 )}
               />
 
+              {/* Due Date */}
               <FormField
                 control={form.control}
                 name="dueDate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem className="flex flex-col flex-1">
                     <FormLabel>Due Date</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -182,15 +195,13 @@ export function TaskPopup({
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-[240px] pl-3 text-left font-normal",
+                              "w-full sm:w-[240px] pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
                           >
-                            {field.value ? (
-                              format(new Date(field.value), "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
+                            {field.value
+                              ? format(new Date(field.value), "PPP")
+                              : "Pick a date"}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
@@ -214,6 +225,8 @@ export function TaskPopup({
                 )}
               />
             </div>
+
+            {/* Assigned User */}
             <FormField
               control={form.control}
               name="assignedUser"
@@ -221,24 +234,39 @@ export function TaskPopup({
                 <FormItem>
                   <FormLabel>Assigned User</FormLabel>
                   <FormControl>
-                    <Input placeholder="Username or email" {...field} />
+                    <Input
+                      placeholder="Username or email"
+                      {...field}
+                      className="w-full"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex justify-between w-full ">
+
+            {/* Actions */}
+            <div className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:space-y-0">
               <Button
                 variant="destructive"
                 onClick={() => deleteTask(projectId, listId, task.id)}
+                className="w-full sm:w-auto"
               >
                 <Trash />
               </Button>
-              <div>
-                <Button variant="ghost" onClick={onClose}>
+              <div className="flex flex-col sm:flex-row sm:space-x-2">
+                <Button
+                  variant="ghost"
+                  onClick={onClose}
+                  className="w-full sm:w-auto"
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={!form.formState.isValid}>
+                <Button
+                  type="submit"
+                  disabled={!form.formState.isValid}
+                  className="w-full sm:w-auto"
+                >
                   Save
                 </Button>
               </div>

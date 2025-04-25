@@ -47,7 +47,7 @@ export function CreateTaskDialog({
 }: CreateTaskDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="space-y-4">
+      <DialogContent className="w-full max-w-sm sm:max-w-lg mx-auto p-4 space-y-4 max-h-[90vh] overflow-auto">
         <DialogTitle>Create New Task</DialogTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -58,7 +58,11 @@ export function CreateTaskDialog({
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="Task title" {...field} />
+                    <Input
+                      placeholder="Task title"
+                      {...field}
+                      className="w-full"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -71,25 +75,33 @@ export function CreateTaskDialog({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="Optional details" {...field} />
+                    <Input
+                      placeholder="Optional details"
+                      {...field}
+                      className="w-full"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex space-x-4">
+
+            <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
               <FormField
                 control={form.control}
                 name="status"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex-1">
                     <FormLabel>Status</FormLabel>
                     <FormControl>
                       <Select
                         value={field.value}
                         onValueChange={(v) => field.onChange(v as TaskStatus)}
                       >
-                        <SelectTrigger data-cy="select-status">
+                        <SelectTrigger
+                          data-cy="select-status"
+                          className="w-full"
+                        >
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -105,18 +117,22 @@ export function CreateTaskDialog({
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="priority"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex-1">
                     <FormLabel>Priority</FormLabel>
                     <FormControl>
                       <Select
                         value={field.value}
                         onValueChange={(v) => field.onChange(v as TaskPriority)}
                       >
-                        <SelectTrigger data-cy="select-priority">
+                        <SelectTrigger
+                          data-cy="select-priority"
+                          className="w-full"
+                        >
                           <SelectValue placeholder="Select priority" />
                         </SelectTrigger>
                         <SelectContent>
@@ -130,11 +146,12 @@ export function CreateTaskDialog({
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="dueDate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem className="flex flex-col flex-1">
                     <FormLabel>Due Date</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -142,7 +159,7 @@ export function CreateTaskDialog({
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-[240px] pl-3 text-left font-normal",
+                              "w-full sm:w-[240px] pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
                           >
@@ -180,14 +197,23 @@ export function CreateTaskDialog({
                 <FormItem>
                   <FormLabel>Assigned User</FormLabel>
                   <FormControl>
-                    <Input placeholder="Username or email" {...field} />
+                    <Input
+                      placeholder="Username or email"
+                      {...field}
+                      className="w-full"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <DialogFooter>
-              <Button type="submit" disabled={!form.formState.isValid}>
+
+            <DialogFooter className="pt-2">
+              <Button
+                type="submit"
+                disabled={!form.formState.isValid}
+                className="w-full sm:w-auto"
+              >
                 Create Task
               </Button>
             </DialogFooter>
