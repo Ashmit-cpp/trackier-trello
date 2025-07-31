@@ -6,7 +6,7 @@ A Trello-like project management app built with React, Vite, Tailwind CSS (v4), 
 
 ## 🔗 Live Demo
 
-[View the hosted demo on Vercel](https://trackier-trello.vercel.app/)
+[View the hosted demo on Vercel](https://taskorbit-trello.vercel.app/login/)
 
 ## 📁 Source Code
 
