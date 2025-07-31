@@ -28,7 +28,7 @@ export function TaskCard({ task, index, setPopupTaskId }: TaskCardProps) {
         >
           <CardContent>
             <div className="flex justify-between">
-              <h3 className="font-medium">{task.title}</h3>
+              <h3 className="font-medium text-secondary">{task.title}</h3>
               <div className="flex gap-2">
                 <Badge
                   className={cn(
@@ -57,7 +57,7 @@ export function TaskCard({ task, index, setPopupTaskId }: TaskCardProps) {
                 </Badge>
               </div>
             </div>
-            <p className="text-sm text-gray-600">{task.description}</p>
+            <p className="text-sm text-primary">{task.description}</p>
             <div className="flex justify-between mt-2">
               {task.assignedUser && (
                 <p className="text-xs">Assigned: {task.assignedUser}</p>

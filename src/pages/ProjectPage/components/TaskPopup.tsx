@@ -82,10 +82,10 @@ export function TaskPopup({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="w-full max-w-sm sm:max-w-lg mx-auto p-4 space-y-4 max-h-[90vh] overflow-auto">
-        <DialogTitle>Edit Task</DialogTitle>
+      <DialogTitle>Edit Task</DialogTitle>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             {/* Title */}
             <FormField
               control={form.control}
@@ -195,7 +195,7 @@ export function TaskPopup({
                           <Button
                             variant="outline"
                             className={cn(
-                              "w-full sm:w-[240px] pl-3 text-left font-normal",
+                              "w-full sm:w-[200px] pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground"
                             )}
                           >
@@ -256,7 +256,7 @@ export function TaskPopup({
               </Button>
               <div className="flex flex-col sm:flex-row sm:space-x-2">
                 <Button
-                  variant="ghost"
+                  variant="destructive"
                   onClick={onClose}
                   className="w-full sm:w-auto"
                 >

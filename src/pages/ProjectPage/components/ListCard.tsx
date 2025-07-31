@@ -61,10 +61,10 @@ export function ListCard({
             />
           ))}
 
-          <div className="flex w-full justify-between items-center mt-2">
+          <div className="flex w-full justify-between items-center mt-6">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="secondary">
                   Delete List
                 </Button>
               </AlertDialogTrigger>
@@ -88,7 +88,6 @@ export function ListCard({
 
             <Button
               size="sm"
-              variant="outline"
               onClick={() => {
                 setTaskForListId(list.id);
                 setTaskDialogOpen(true);

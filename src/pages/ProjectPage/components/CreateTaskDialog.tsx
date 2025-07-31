@@ -48,7 +48,7 @@ export function CreateTaskDialog({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="w-full max-w-sm sm:max-w-lg mx-auto p-4 space-y-4 max-h-[90vh] overflow-auto">
-        <DialogTitle>Create New Task</DialogTitle>
+        <DialogTitle >Create New Task</DialogTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -157,9 +157,8 @@ export function CreateTaskDialog({
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant="outline"
                             className={cn(
-                              "w-full sm:w-[240px] pl-3 text-left font-normal",
+                              "w-full sm:w-[240px] pl-3 text-left font-normal bg-card",
                               !field.value && "text-muted-foreground"
                             )}
                           >
