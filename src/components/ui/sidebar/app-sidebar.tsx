@@ -37,7 +37,6 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
   Plus, 
-  User2, 
   ChevronUp, 
   FolderKanban, 
   Settings, 
@@ -107,7 +106,6 @@ export function AppSidebar() {
     navigate("/auth");
   };
 
-  const isProjectsRoot = location.pathname === "/" || location.pathname === "/project/";
   const isHomePage = location.pathname === "/";
 
   return (
@@ -172,7 +170,6 @@ export function AppSidebar() {
                   </div>
                 ) : (
                   projects.map((proj) => {
-                    const active = location.pathname === `/project/${proj.id}`;
                     return (
                       <SidebarMenuItem key={proj.id}>
                         <SidebarMenuButton
