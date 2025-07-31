@@ -46,7 +46,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     };
 
     return (
-      <Card className="mx-auto mt-20 p-6 shadow-lg rounded-2xl">
+      <Card className="bg-secondary/60 mx-auto mt-20 p-6 shadow-lg rounded-2xl">
         <CardContent>
           <h2 className="text-2xl font-semibold mb-6 text-center capitalize">
             Register
@@ -133,7 +133,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   };
 
   return (
-    <Card className=" mx-auto mt-20 p-6 shadow-lg rounded-2xl">
+    <Card className="bg-secondary/60 mx-auto mt-20 p-6 shadow-lg rounded-2xl">
       <CardContent>
         <h2 className="text-2xl font-semibold mb-6 text-center capitalize">
           Login
