@@ -1,4 +1,4 @@
-# Trackier-Trello Clone
+# TaskOrbit -Trello Clone
 
 A Trello-like project management app built with React, Vite, Tailwind CSS (v4), and modern UI primitives—complete with authentication, drag-and-drop, and end-to-end tests.
 
